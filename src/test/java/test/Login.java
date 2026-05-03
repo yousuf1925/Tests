@@ -15,9 +15,9 @@ import java.time.Duration;
 
 public class Login {
     private WebDriver driver;
-    private String baseLoginURL = "http://13.49.187.55:3001/login";
-    private String homeURL = "http://13.49.187.55:3001/";
-    private String profileURL = "http://13.49.187.55:3001/profile";
+    private String baseLoginURL = "http://13.49.187.55:3002/login";
+    private String homeURL = "http://13.49.187.55:3002/";
+    private String profileURL = "http://13.49.187.55:3002/profile";
     private WebDriverWait wait;
     
     private String validEmail = "yousf@gmail.com";
