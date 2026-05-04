@@ -23,7 +23,7 @@ public class LoginTest {
     private String validEmail = "yousf@gmail.com";
     private String validPassword = "yousaf.12";
     
-    @Before
+  
     @Before
 public void setUp() {
     org.openqa.selenium.chrome.ChromeOptions options = new org.openqa.selenium.chrome.ChromeOptions();
