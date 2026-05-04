@@ -24,11 +24,21 @@ public class LoginTest {
     private String validPassword = "yousaf.12";
     
     @Before
-    public void setUp() {
-        driver = new ChromeDriver();
-        wait = new WebDriverWait(driver, Duration.ofSeconds(15));
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
-    }
+    @Before
+public void setUp() {
+    org.openqa.selenium.chrome.ChromeOptions options = new org.openqa.selenium.chrome.ChromeOptions();
+
+    options.addArguments("--headless=new");
+    options.addArguments("--no-sandbox");
+    options.addArguments("--disable-dev-shm-usage");
+    options.addArguments("--disable-gpu");
+    options.addArguments("--window-size=1920,1080");
+
+    driver = new ChromeDriver(options);
+
+    wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+    driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+}
     
     @After
     public void tearDown() {
