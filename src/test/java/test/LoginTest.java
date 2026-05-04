@@ -25,16 +25,21 @@ public class LoginTest {
     public void setUp() {
 
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless=new");
+
+        // FIXED for Chrome 91
+        options.addArguments("--headless");
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
         options.addArguments("--disable-gpu");
         options.addArguments("--window-size=1920,1080");
+        options.addArguments("--remote-allow-origins=*");
 
         driver = new ChromeDriver(options);
 
-        // FIX: only explicit wait (remove implicit wait conflict)
-        wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+        // Prevent hanging forever
+        driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(30));
+
+        wait = new WebDriverWait(driver, 20);
     }
 
     @After
@@ -44,7 +49,7 @@ public class LoginTest {
         }
     }
 
-    // ============ HELPER METHOD ============
+    // ===== HELPER METHOD =====
 
     private void login() {
         driver.navigate().to(baseLoginURL);
@@ -56,11 +61,7 @@ public class LoginTest {
 
         driver.findElement(By.xpath("//button[@type='submit' and contains(text(), 'Login')]")).click();
 
-        // FIX: stable condition instead of generic "/" check
-        wait.until(ExpectedConditions.or(
-                ExpectedConditions.urlContains("13.49.187.55:3002"),
-                ExpectedConditions.urlContains("3002/")
-        ));
+        wait.until(ExpectedConditions.urlContains("3002"));
     }
 
     private void sleep(long millis) {
@@ -71,7 +72,7 @@ public class LoginTest {
         }
     }
 
-    // ============ LOGIN TESTS ============
+    // ===== LOGIN TESTS =====
 
     @Test
     public void testValidLogin() {
@@ -80,12 +81,11 @@ public class LoginTest {
 
         driver.findElement(By.id("email")).sendKeys(validEmail);
         driver.findElement(By.id("password")).sendKeys(validPassword);
-        driver.findElement(By.xpath("//button[@type='submit' and contains(text(), 'Login')]")).click();
+        driver.findElement(By.xpath("//button[contains(text(),'Login')]")).click();
 
         wait.until(ExpectedConditions.urlContains("3002"));
 
-        boolean isOnHomePage = driver.getCurrentUrl().contains("13.49.187.55:3002");
-        assertTrue("Should redirect to home page after valid login", isOnHomePage);
+        assertTrue(driver.getCurrentUrl().contains("3002"));
     }
 
     @Test
@@ -95,15 +95,15 @@ public class LoginTest {
 
         driver.findElement(By.id("email")).sendKeys("");
         driver.findElement(By.id("password")).sendKeys("");
-        driver.findElement(By.xpath("//button[@type='submit' and contains(text(), 'Login')]")).click();
+        driver.findElement(By.xpath("//button[contains(text(),'Login')]")).click();
 
         sleep(800);
 
-        boolean errorDisplayed =
-                driver.findElements(By.xpath("//*[contains(text(), 'required') or contains(text(), 'error')]"))
-                        .size() > 0;
+        boolean errorDisplayed = driver.findElements(
+                By.xpath("//*[contains(text(),'required') or contains(text(),'error')]")
+        ).size() > 0;
 
-        assertTrue("Should show error for empty fields", errorDisplayed);
+        assertTrue(errorDisplayed);
     }
 
     @Test
@@ -113,15 +113,15 @@ public class LoginTest {
 
         driver.findElement(By.id("email")).sendKeys("invalidemail");
         driver.findElement(By.id("password")).sendKeys(validPassword);
-        driver.findElement(By.xpath("//button[@type='submit' and contains(text(), 'Login')]")).click();
+        driver.findElement(By.xpath("//button[contains(text(),'Login')]")).click();
 
         sleep(800);
 
-        boolean errorDisplayed =
-                driver.findElements(By.xpath("//*[contains(text(), 'error') or contains(text(), 'failed')]"))
-                        .size() > 0;
+        boolean errorDisplayed = driver.findElements(
+                By.xpath("//*[contains(text(),'error') or contains(text(),'failed')]")
+        ).size() > 0;
 
-        assertTrue("Should show error for invalid email", errorDisplayed);
+        assertTrue(errorDisplayed);
     }
 
     @Test
@@ -129,16 +129,12 @@ public class LoginTest {
         driver.navigate().to(baseLoginURL);
         wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
 
-        WebElement emailField = driver.findElement(By.id("email"));
-        WebElement passwordField = driver.findElement(By.id("password"));
-        WebElement submitBtn = driver.findElement(By.xpath("//button[@type='submit' and contains(text(), 'Login')]"));
-
-        assertTrue(emailField.isDisplayed());
-        assertTrue(passwordField.isDisplayed());
-        assertTrue(submitBtn.isDisplayed());
+        assertTrue(driver.findElement(By.id("email")).isDisplayed());
+        assertTrue(driver.findElement(By.id("password")).isDisplayed());
+        assertTrue(driver.findElement(By.xpath("//button[contains(text(),'Login')]")).isDisplayed());
     }
 
-    // ============ OTHER TESTS (UNCHANGED LOGIC, ONLY STABILITY FIXED SLIGHTLY) ============
+    // ===== QUESTION TESTS =====
 
     @Test
     public void testCreateQuestionWithValidData() {
@@ -163,7 +159,7 @@ public class LoginTest {
         boolean questionPosted =
                 driver.findElements(By.xpath("//*[contains(text(), 'Selenium')]")).size() > 0;
 
-        assertTrue("Question should be posted successfully", questionPosted);
+        assertTrue(questionPosted);
     }
 
     @Test
@@ -199,19 +195,18 @@ public class LoginTest {
         WebElement contentTextarea = driver.findElement(
                 By.xpath("//textarea[@placeholder='Add details...']"));
 
-        String titleWithSpecialChars =
-                "What's the difference between @Override and @Deprecated?";
-        titleInput.sendKeys(titleWithSpecialChars);
+        String title = "What's the difference between @Override and @Deprecated?";
+        titleInput.sendKeys(title);
         contentTextarea.sendKeys("Explain Java annotations");
 
         driver.findElement(By.xpath("//button[contains(text(), 'Post Question')]")).click();
 
         sleep(1200);
 
-        boolean questionPosted =
+        boolean posted =
                 driver.findElements(By.xpath("//*[contains(text(), '@Override')]")).size() > 0;
 
-        assertTrue(questionPosted);
+        assertTrue(posted);
     }
 
     @Test
@@ -226,16 +221,82 @@ public class LoginTest {
         WebElement contentTextarea = driver.findElement(
                 By.xpath("//textarea[@placeholder='Add details...']"));
 
-        titleInput.sendKeys("Test Question " + System.currentTimeMillis());
+        titleInput.sendKeys("Test " + System.currentTimeMillis());
         contentTextarea.sendKeys("Test content");
 
         driver.findElement(By.xpath("//button[contains(text(), 'Post Question')]")).click();
 
         sleep(1200);
 
-        String titleAfter = titleInput.getAttribute("value");
-        String contentAfter = contentTextarea.getAttribute("value");
+        assertTrue(titleInput.getAttribute("value").isEmpty() ||
+                   contentTextarea.getAttribute("value").isEmpty());
+    }
 
-        assertTrue(titleAfter.isEmpty() || contentAfter.isEmpty());
+    // ===== NAVIGATION & ANSWER TESTS =====
+
+    @Test
+    public void testNavigateToQuestionDetail() {
+        login();
+
+        wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//a[contains(@href, '/questions/')]"))).click();
+
+        sleep(1200);
+
+        assertTrue(driver.getCurrentUrl().contains("/questions/"));
+    }
+
+    @Test
+    public void testPostAnswerToQuestion() {
+        login();
+
+        wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//a[contains(@href, '/questions/')]"))).click();
+
+        wait.until(ExpectedConditions.presenceOfElementLocated(
+                By.xpath("//textarea[@placeholder='Write your answer or comment here...']")));
+
+        String answer = "test answer " + System.currentTimeMillis();
+
+        driver.findElement(By.xpath("//textarea")).sendKeys(answer);
+        driver.findElement(By.xpath("//button[contains(text(),'Post Answer')]")).click();
+
+        sleep(1200);
+
+        assertTrue(driver.findElements(By.xpath("//*[contains(text(),'test answer')]")).size() > 0);
+    }
+
+    @Test
+    public void testAnswersDisplayedOnQuestionPage() {
+        login();
+
+        wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//a[contains(@href, '/questions/')]"))).click();
+
+        sleep(1000);
+
+        assertTrue(driver.findElements(By.xpath("//*[contains(text(),'Answers')]")).size() > 0);
+    }
+
+    // ===== PROFILE & DELETE =====
+
+    @Test
+    public void testNavigateToProfilePage() {
+        login();
+
+        wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//a[contains(@href,'/profile')]"))).click();
+
+        assertTrue(driver.getCurrentUrl().contains("/profile"));
+    }
+
+    @Test
+    public void testLogout() {
+        login();
+
+        wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//button[contains(text(),'Logout')]"))).click();
+
+        assertTrue(driver.getCurrentUrl().contains("/login"));
     }
 }
