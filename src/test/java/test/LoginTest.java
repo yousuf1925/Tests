@@ -327,7 +327,7 @@ public class LoginTest {
         ).size() > 0;
 
         assertTrue("Search results not displayed", resultsDisplayed);
-    }
+    
 }
 
     @Test
