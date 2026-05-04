@@ -4,6 +4,7 @@
          https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
+
   <groupId>test</groupId>
   <artifactId>test</artifactId>
   <version>0.0.1-SNAPSHOT</version>
@@ -22,6 +23,17 @@
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-java</artifactId>
       <version>4.18.1</version>
+      <exclusions>
+        <!-- Prevent JUnit 5 conflicts -->
+        <exclusion>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.junit.platform</groupId>
+          <artifactId>junit-platform-launcher</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- WebDriverManager -->
@@ -31,18 +43,20 @@
       <version>5.7.0</version>
     </dependency>
 
-    
+    <!-- JUnit 4 ONLY -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.13.2</version>
       <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.hamcrest</groupId>
-          <artifactId>hamcrest-core</artifactId>
-        </exclusion>
-      </exclusions>
+    </dependency>
+
+    <!-- Optional safety: ensures JUnit 4 compatibility with newer engines -->
+    <dependency>
+      <groupId>org.junit.vintage</groupId>
+      <artifactId>junit-vintage-engine</artifactId>
+      <version>5.10.2</version>
+      <scope>test</scope>
     </dependency>
 
   </dependencies>
@@ -67,11 +81,11 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.0.0-M5</version>
         <configuration>
-          <failIfNoTests>false</failIfNoTests>
-          <useFile>false</useFile>
           <includes>
             <include>**/*Test.java</include>
           </includes>
+          <useFile>false</useFile>
+          <failIfNoTests>false</failIfNoTests>
         </configuration>
       </plugin>
 
