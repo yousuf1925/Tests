@@ -287,6 +287,48 @@ public class LoginTest {
 
         assertTrue(driver.getCurrentUrl().contains("/profile"));
     }
+        // ===== ADDITIONAL MEANINGFUL TESTS =====
+
+    @Test
+    public void testLoginWithInvalidPassword() {
+        driver.navigate().to(baseLoginURL);
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.id("email")));
+
+        driver.findElement(By.id("email")).sendKeys(validEmail);
+        driver.findElement(By.id("password")).sendKeys("wrongpassword123");
+        driver.findElement(By.xpath("//button[contains(text(),'Login')]")).click();
+
+        sleep(800);
+
+        boolean errorDisplayed = driver.findElements(
+                By.xpath("//*[contains(text(),'error') or contains(text(),'failed') or contains(text(),'incorrect')]")
+        ).size() > 0;
+
+        assertTrue("Error message not displayed for invalid password", errorDisplayed);
+        assertFalse("User should not be logged in", driver.getCurrentUrl().contains("/profile"));
+    }
+
+    @Test
+    public void testSearchForQuestion() {
+        login();
+
+        wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//input[@placeholder='Type here to search...']")));
+
+        WebElement searchInput = driver.findElement(By.xpath("//input[@placeholder='Type here to search...']"));
+        searchInput.sendKeys("Selenium");
+
+        driver.findElement(By.xpath("//button[@type='submit']//svg")).click();
+
+        sleep(1200);
+
+        boolean resultsDisplayed = driver.findElements(
+                By.xpath("//h3[contains(text(),'Selenium')] | //*[contains(text(),'Selenium')]")
+        ).size() > 0;
+
+        assertTrue("Search results not displayed", resultsDisplayed);
+    }
+}
 
     @Test
     public void testLogout() {
