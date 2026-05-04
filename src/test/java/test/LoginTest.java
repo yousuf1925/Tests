@@ -25,24 +25,26 @@ public class LoginTest {
     @Before
     public void setUp() {
 
-        ChromeOptions options = new ChromeOptions();
+    ChromeOptions options = new ChromeOptions();
 
-        options.addArguments("--headless");
-        options.addArguments("--no-sandbox");
-        options.addArguments("--disable-dev-shm-usage");
-        options.addArguments("--disable-gpu");
-        options.addArguments("--window-size=1920,1080");
-        options.addArguments("--remote-allow-origins=*");
+    options.addArguments("--headless");
+    options.addArguments("--no-sandbox");
+    options.addArguments("--disable-dev-shm-usage");
+    options.addArguments("--disable-gpu");
+    options.addArguments("--window-size=1920,1080");
+    options.addArguments("--remote-allow-origins=*");
 
-        driver = new ChromeDriver(options);
+    driver = new ChromeDriver(options);
 
-        // ✅ FIX 1: Selenium 3 compatible timeout (CRITICAL)
-        driver.manage().timeouts().pageLoadTimeout(30, TimeUnit.SECONDS);
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+    // ✅ Selenium 3 compatible
+    driver.manage().timeouts().pageLoadTimeout(30, TimeUnit.SECONDS);
 
-        // ✅ FIX 2: WebDriverWait stable version
-        wait = new WebDriverWait(driver, Duration.ofSeconds(20));
-    }
+    // ❌ REMOVE implicit wait (avoid conflicts)
+    // driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+
+    // ✅ Selenium 3 style
+    wait = new WebDriverWait(driver, 20);
+}
 
     @After
     public void tearDown() {
