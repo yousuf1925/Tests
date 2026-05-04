@@ -13,7 +13,7 @@ import org.junit.After;
 import org.junit.Test;
 import java.time.Duration;
 
-public class Login {
+public class LoginTest {
     private WebDriver driver;
     private String baseLoginURL = "http://13.49.187.55:3002/login";
     private String homeURL = "http://13.49.187.55:3002/";
