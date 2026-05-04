@@ -9,7 +9,6 @@
   <version>0.0.1-SNAPSHOT</version>
   <name>Selenium</name>
 
-  <!-- Java 11 to match markhobson/maven-chrome:jdk-11 image -->
   <properties>
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
@@ -25,19 +24,25 @@
       <version>4.18.1</version>
     </dependency>
 
-    <!-- WebDriverManager: auto-resolves ChromeDriver path inside container -->
+    <!-- WebDriverManager -->
     <dependency>
       <groupId>io.github.bonigarcia</groupId>
       <artifactId>webdrivermanager</artifactId>
       <version>5.7.0</version>
     </dependency>
 
-    <!-- JUnit 4 -->
+    <!-- 🔥 FORCE JUNIT 4 ONLY (important fix) -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.13.2</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.hamcrest</groupId>
+          <artifactId>hamcrest-core</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
   </dependencies>
@@ -45,7 +50,7 @@
   <build>
     <plugins>
 
-      <!-- Compiler Plugin -->
+      <!-- Compiler -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -56,16 +61,17 @@
         </configuration>
       </plugin>
 
-      <!-- Surefire Plugin: generates XML reports Jenkins reads -->
+      <!-- Surefire (stable for Jenkins + JUnit 4) -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.2.5</version>
+        <version>3.0.0-M5</version>
         <configuration>
-          <!-- Ensures tests don't get skipped silently -->
           <failIfNoTests>false</failIfNoTests>
-          <!-- Prints test output to console so Jenkins logs show it -->
           <useFile>false</useFile>
+          <includes>
+            <include>**/*Test.java</include>
+          </includes>
         </configuration>
       </plugin>
 
